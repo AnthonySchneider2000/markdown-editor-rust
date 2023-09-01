@@ -13,7 +13,7 @@ This is a list:
 
 [Visit Google](https://www.google.com)
 
-Embedded Image
+### Embedded Image
 ![Markdown Logo](https://markdown-here.com/img/icon128.png)
 
 
