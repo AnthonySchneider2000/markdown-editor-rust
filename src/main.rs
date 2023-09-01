@@ -1,54 +1,83 @@
-use druid::widget::{Align, Button, Flex, Label, TextBox};
-use druid::{AppLauncher, Data, Env, Lens, LocalizedString, Widget, WidgetExt, WindowDesc};
+use druid::widget::{Button, Flex, TextBox, Label, WidgetExt};
+use druid::{AppLauncher, Data, Lens, LocalizedString, Widget, WindowDesc};
+extern crate pulldown_cmark;
+use pulldown_cmark::{Parser, Options, html};
 
-const VERTICAL_WIDGET_SPACING: f64 = 20.0; // 20 units of vertical space, f64 is a float
-const TEXT_BOX_WIDTH: f64 = 200.0; // 200 units of width
-const WINDOW_TITLE: LocalizedString<HelloState> = LocalizedString::new("Hello World!");
+const VERTICAL_WIDGET_SPACING: f64 = 20.0;
+// 16:9 aspect ratio
+const TEXT_BOX_WIDTH: f64 = 800.0;
+const TEXT_BOX_HEIGHT: f64 = 600.0;
+const WINDOW_TITLE: LocalizedString<HelloState> = LocalizedString::new("Text Input and Output");
 
 #[derive(Clone, Data, Lens)]
 struct HelloState {
-    name: String,
+    input_text: String,
+    output_text: String,
 }
 
 fn main() {
-    // describe the main window
     let main_window = WindowDesc::new(build_root_widget())
         .title(WINDOW_TITLE)
-        .window_size((400.0, 400.0));
+        .window_size((1600.0+50.0, 900.0)); //16:9 aspect ratio + 50px for some padding
 
-    // create the initial app state
     let initial_state = HelloState {
-        name: "World".into(),
+        input_text: String::new(),
+        output_text: String::new(),
     };
 
-    // start the application
     AppLauncher::with_window(main_window)
         .launch(initial_state)
         .expect("Failed to launch application");
 }
 
-fn build_root_widget() -> impl Widget<HelloState> {
-    // a label that will determine its text based on the current app data.
-    let label = Label::new(|data: &HelloState, _env: &Env| format!("Hello {}!", data.name));
-    // a textbox that modifies `name`.
-    let textbox = TextBox::new()
-        .with_placeholder("Who are we greeting?")
-        .fix_width(TEXT_BOX_WIDTH)
-        .lens(HelloState::name);
+fn convert_markdown_to_html(markdown: &str) -> String {
+    let mut html_output = String::new();
+    let parser = Parser::new_ext(markdown, Options::all());
+    html::push_html(&mut html_output, parser);
+    html_output
+}
 
-    let button = Button::new("Click me!").on_click(|_ctx, data: &mut HelloState, _env| {
-        // Update the `name` field in the HelloState struct
-        data.name = "Button Clicked".into();
+fn build_root_widget() -> impl Widget<HelloState> {
+    // Create a TextBox for input
+    let input_textbox = TextBox::multiline()
+        .with_placeholder("Enter text here...")
+        .fix_width(TEXT_BOX_WIDTH)
+        .fix_height(TEXT_BOX_HEIGHT)
+        .lens(HelloState::input_text);
+
+    // Create a TextBox for output
+    let output_textbox = TextBox::multiline()
+        .with_placeholder("Output will appear here...")
+        .fix_width(TEXT_BOX_WIDTH)
+        .fix_height(TEXT_BOX_HEIGHT)
+        .lens(HelloState::output_text);
+
+    // Create a Submit button
+    let submit_button = Button::new("Submit").on_click(|_ctx, data: &mut HelloState, _env| {
+        // Process the input and update the output_text field
+        data.output_text = convert_markdown_to_html(&data.input_text);
     });
 
-    // arrange the two widgets vertically, with some padding
-    let layout = Flex::column()
-        .with_child(label)
-        .with_spacer(VERTICAL_WIDGET_SPACING)
-        .with_child(textbox)
-        .with_spacer(VERTICAL_WIDGET_SPACING)
-        .with_child(button);
+    let input_text_box = Flex::column()
+        .with_child(Label::new("Input"))
+        .with_child(input_textbox);
 
-    // center the two widgets in the available space
-    Align::centered(layout)
+    let output_text_box = Flex::column()
+        .with_child(Label::new("Output"))
+        .with_child(output_textbox);
+
+    let text_box_container = Flex::row()
+        .with_child(input_text_box)
+        .with_spacer(10.0)
+        .with_child(output_text_box);
+
+
+    // Arrange the widgets vertically in a column
+    let layout = Flex::column()
+        .with_spacer(75.0)
+        .with_child(text_box_container)
+        .with_spacer(VERTICAL_WIDGET_SPACING)
+        .with_child(submit_button);
+
+    layout
 }
