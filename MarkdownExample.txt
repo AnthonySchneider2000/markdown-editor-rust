@@ -1,0 +1,38 @@
+# My Markdown Document
+
+This is a list:
+- Item 1
+- Item 2
+- Item 3
+
+*This is italic text.*
+
+**This is bold text.**
+
+***This is bold and italic text.***
+
+[Visit Google](https://www.google.com)
+
+Embedded Image
+![Markdown Logo](https://markdown-here.com/img/icon128.png)
+
+
+Here's some code:
+
+```python
+def hello_world():
+    print("Hello, world!")
+```
+
+> This is a blockquote.
+>
+> It can span multiple lines.
+
+---
+
+| Header 1 | Header 2 |
+| -------- | -------- |
+| Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |
+
+You can use `inline code` within text.
