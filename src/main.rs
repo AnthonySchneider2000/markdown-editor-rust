@@ -1,7 +1,9 @@
-use druid::widget::{Button, Flex, TextBox, Label, WidgetExt};
+use druid::widget::{Button, Flex, Label, TextBox, WidgetExt};
 use druid::{AppLauncher, Data, Lens, LocalizedString, Widget, WindowDesc};
 extern crate pulldown_cmark;
-use pulldown_cmark::{Parser, Options, html};
+use pulldown_cmark::{html, Options, Parser};
+
+const CUSTOM_FONT_SIZE: f64 = 30.0;
 
 const VERTICAL_WIDGET_SPACING: f64 = 20.0;
 // 16:9 aspect ratio
@@ -18,7 +20,7 @@ struct HelloState {
 fn main() {
     let main_window = WindowDesc::new(build_root_widget())
         .title(WINDOW_TITLE)
-        .window_size((1600.0+50.0, 900.0)); //16:9 aspect ratio + 50px for some padding
+        .window_size((1600.0 + 50.0, 900.0)); //16:9 aspect ratio + 50px for some padding
 
     let initial_state = HelloState {
         input_text: String::new(),
@@ -52,25 +54,31 @@ fn build_root_widget() -> impl Widget<HelloState> {
         .fix_height(TEXT_BOX_HEIGHT)
         .lens(HelloState::output_text);
 
-    // Create a Submit button
-    let submit_button = Button::new("Submit").on_click(|_ctx, data: &mut HelloState, _env| {
-        // Process the input and update the output_text field
-        data.output_text = convert_markdown_to_html(&data.input_text);
-    });
+    let submit_button = Button::from_label(Label::new("Submit").with_text_size(CUSTOM_FONT_SIZE))
+        .on_click(|_ctx, data: &mut HelloState, _env| {
+            data.output_text = convert_markdown_to_html(&data.input_text);
+        })
+        .fix_width(150.0)
+        .fix_height(75.0);
+
+    let input_label = Label::new("Input").with_text_size(CUSTOM_FONT_SIZE);
+
+    let output_label = Label::new("Output").with_text_size(CUSTOM_FONT_SIZE);
 
     let input_text_box = Flex::column()
-        .with_child(Label::new("Input"))
+        .with_child(input_label)
+        .with_spacer(10.0)
         .with_child(input_textbox);
 
     let output_text_box = Flex::column()
-        .with_child(Label::new("Output"))
+        .with_child(output_label)
+        .with_spacer(10.0)
         .with_child(output_textbox);
 
     let text_box_container = Flex::row()
         .with_child(input_text_box)
         .with_spacer(10.0)
         .with_child(output_text_box);
-
 
     // Arrange the widgets vertically in a column
     let layout = Flex::column()
